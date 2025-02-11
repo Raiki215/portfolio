@@ -1,6 +1,6 @@
 "use client";
 import * as THREE from "three";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 export default function Home() {
   useEffect(() => {
