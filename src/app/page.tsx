@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import * as THREE from "three";
 import React from "react";
+import Chart from "chart.js/auto";
 
 export default function Home() {
   useEffect(() => {
@@ -189,6 +190,102 @@ export default function Home() {
                 imageHeight
               );
             };
+          } else if (order === 1) {
+            const startX = 900;
+            const startY = 100;
+            const columnSpacing = 100;
+
+            textArray.forEach((text, index) => {
+              const isFirstText = index === 0;
+              const fontSize = isFirstText
+                ? fontSettings.baseFontSize
+                : fontSettings.secondaryFontSize;
+              const lineSpacing = isFirstText
+                ? fontSettings.baseLineSpacing
+                : fontSettings.secondaryLineSpacing;
+
+              ctx.font = `bold ${fontSize}px CustomFont`;
+              ctx.fillStyle = "black";
+              ctx.textAlign = "center";
+
+              const textX = startX - index * columnSpacing;
+              let textY = startY;
+              for (let i = 0; i < text.length; i++) {
+                ctx.fillText(text[i], textX, textY);
+                textY += lineSpacing;
+              }
+            });
+            const createDoughnutChart = (
+              dataValue: number,
+              labelText: string,
+              color: string, // 追加: 個別の色を指定
+              posX: number,
+              posY: number
+            ) => {
+              const chartCanvas = document.createElement("canvas");
+              chartCanvas.width = 200;
+              chartCanvas.height = 300;
+              const chartCtx = chartCanvas.getContext("2d");
+
+              if (chartCtx) {
+                new Chart(chartCtx, {
+                  type: "doughnut",
+                  data: {
+                    labels: ["Used", "Remaining"],
+                    datasets: [
+                      {
+                        data: [dataValue, 100 - dataValue],
+                        backgroundColor: [color, "lightgray"], // ★ color を適用
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: false,
+                    cutout: "70%",
+                    animation: {
+                      duration: 300,
+                      onComplete: function () {
+                        ctx.drawImage(chartCanvas, posX, posY, 200, 200);
+                      },
+                    },
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: { enabled: false },
+                    },
+                  },
+                  plugins: [
+                    {
+                      id: "centerAndText",
+                      beforeDraw: (chart) => {
+                        const {
+                          ctx,
+                          chartArea: { width, height },
+                        } = chart;
+                        ctx.save();
+                        // 中央の数字
+                        ctx.font = "bold 30px CustomFont";
+                        ctx.fillStyle = "black";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(`${dataValue}%`, width / 2, height / 2);
+                        // 下部のテキスト
+                        ctx.font = "bold 25px CustomFont";
+                        ctx.fillText(labelText, width / 2, height - 20);
+                        ctx.restore();
+                      },
+                    },
+                  ],
+                });
+              }
+            };
+
+            // 6つのチャートを描画（色を個別に指定）
+            createDoughnutChart(75, "Javascript", "goldenrod", 650, 50);
+            createDoughnutChart(60, "HTML", "black", 400, 50);
+            createDoughnutChart(60, "CSS", "yellow", 150, 50);
+            createDoughnutChart(55, "Python", "purple", 650, 250);
+            createDoughnutChart(45, "PHP", "green", 400, 250);
+            createDoughnutChart(20, "Java", "red", 150, 250);
           }
 
           const imageTexture = new THREE.CanvasTexture(canvas);
@@ -309,6 +406,14 @@ export default function Home() {
             -window.innerWidth / 2,
             0,
             0
+          );
+
+          createImagePlaneWithText(
+            "/frame.png",
+            ["技術"],
+            -window.innerWidth / 2,
+            0,
+            1
           );
 
           frameImageCreated = true;
