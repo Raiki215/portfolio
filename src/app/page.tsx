@@ -390,31 +390,31 @@ export default function Home() {
                   text: "1年生の時にPHPを使って", // 描画するテキスト
                   x: 230, // 描画するx座標（例：画像の右側に配置）
                   y: 80, // 描画開始のy座標
-                  font: `20px CustomFont`, // 使用するフォントサイズとフォント
+                  font: `18px CustomFont`, // 使用するフォントサイズとフォント
                 },
                 {
                   text: "カジノアプリを開発しました",
                   x: 200,
                   y: 80,
-                  font: `20px CustomFont`,
+                  font: `18px CustomFont`,
                 },
                 {
                   text: "この開発ではログイン機能と",
                   x: 170,
                   y: 80,
-                  font: `20px CustomFont`,
+                  font: `18px CustomFont`,
                 },
                 {
                   text: "アカウント削除・遊戯一覧を",
                   x: 140,
                   y: 80,
-                  font: `20px CustomFont`,
+                  font: `18px CustomFont`,
                 },
                 {
                   text: "担当しました",
                   x: 110,
                   y: 80,
-                  font: `20px CustomFont`,
+                  font: `18px CustomFont`,
                 },
               ];
               additionalTextItems2.forEach((item) => {
