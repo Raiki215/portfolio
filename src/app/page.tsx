@@ -151,7 +151,27 @@ export default function Home() {
           camera.lookAt(0, 0, 0);
           frameImageCreated = true;
           isScrollDisabled = false; // スクロール再開
-          window.addEventListener("wheel", onWheel, { passive: false });
+
+          const canvas = document.createElement("canvas");
+          const scaleFactor = 2; // 高解像度対応
+          canvas.width = 1024 * scaleFactor;
+          canvas.height = 512 * scaleFactor;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.scale(scaleFactor, scaleFactor);
+
+          const image = new Image();
+          image.src = "/public/frame.png";
+          image.onload = () => {
+            ctx.drawImage(
+              image,
+              0,
+              0,
+              canvas.width / scaleFactor,
+              canvas.height / scaleFactor
+            );
+            window.addEventListener("wheel", onWheel, { passive: false });
+          };
         }
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
