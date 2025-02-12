@@ -22,19 +22,63 @@ jest.mock("three", () => {
         offset: { set: jest.fn() },
       })),
     })),
+    Scene: jest.fn().mockImplementation(() => ({
+      add: jest.fn(),
+    })),
+    PerspectiveCamera: jest.fn().mockImplementation(() => ({
+      position: { set: jest.fn() },
+      lookAt: jest.fn(),
+    })),
   };
 });
 
-describe("Home Component", () => {
-  test("renders without crashing", () => {
+describe("Home コンポーネントのテスト", () => {
+  test("クラッシュせずにレンダリングされること", () => {
     render(<Home />);
   });
 
-  test("should initialize Three.js scene", () => {
+  test("Three.js のシーンが正しく初期化されること", () => {
     render(<Home />);
     const renderer = THREE.WebGLRenderer; // モックされた WebGLRenderer を確認
     const textureLoader = THREE.TextureLoader; // モックされた TextureLoader を確認
     expect(renderer).toHaveBeenCalled();
     expect(textureLoader).toHaveBeenCalled();
+  });
+
+  test("Three.js のシーンが作成されること", () => {
+    render(<Home />);
+    const scene = THREE.Scene;
+    expect(scene).toHaveBeenCalled();
+  });
+
+  test("PerspectiveCamera が正しいパラメータで作成されること", () => {
+    render(<Home />);
+    const perspectiveCamera = THREE.PerspectiveCamera;
+    expect(perspectiveCamera).toHaveBeenCalledWith(
+      75,
+      expect.any(Number),
+      0.1,
+      1000
+    );
+  });
+
+  test("ホイールイベントリスナーが追加されること", () => {
+    const addEventListenerSpy = jest.spyOn(window, "addEventListener");
+    render(<Home />);
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      "wheel",
+      expect.any(Function),
+      { passive: false }
+    );
+  });
+
+  test("アンマウント時にホイールイベントリスナーが削除されること", () => {
+    const removeEventListenerSpy = jest.spyOn(window, "removeEventListener");
+    const { unmount } = render(<Home />);
+    unmount();
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      "wheel",
+      expect.any(Function)
+    );
   });
 });
