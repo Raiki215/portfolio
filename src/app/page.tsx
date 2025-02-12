@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 export default function Home() {
   useEffect(() => {
     const scene = new THREE.Scene();
+    let frameImageCreated = false;
     scene.background = new THREE.Color(0xdcb879);
 
     const camera = new THREE.PerspectiveCamera(
@@ -54,6 +55,22 @@ export default function Home() {
     group.add(bottomCylinder);
     scene.add(group);
 
+    const initialWidth = 0.1;
+    const maxWidth = 8;
+    const height = 5;
+    let currentWidth = initialWidth;
+
+    const rectangleGeometry = new THREE.PlaneGeometry(initialWidth, height);
+    const rectangleMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffe8b6,
+      side: THREE.DoubleSide,
+    });
+
+    const rectangle = new THREE.Mesh(rectangleGeometry, rectangleMaterial);
+    rectangle.position.x = -0.5;
+    rectangle.position.z = -0.1;
+    scene.add(rectangle);
+
     // ライトの設定
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
@@ -62,6 +79,86 @@ export default function Home() {
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
+    let isZooming = false;
+    let isScrollDisabled = false;
+    const zoomSpeed = 0.1;
+    const targetZ = rectangle.position.z + 0.5;
+    let currentZoomProgress = 0;
+    let zoomFinished = false;
+
+    const onWheel = (event: WheelEvent) => {
+      if (isScrollDisabled) {
+        event.preventDefault();
+        return;
+      }
+
+      event.preventDefault();
+
+      const scrollAmount = event.deltaY;
+      if (!zoomFinished) {
+        group.rotation.y -= scrollAmount * 0.005;
+
+        currentWidth += scrollAmount * 0.01;
+        if (currentWidth > maxWidth) currentWidth = maxWidth;
+        if (currentWidth < initialWidth) currentWidth = initialWidth;
+
+        const newGeometry = new THREE.PlaneGeometry(currentWidth, height);
+        rectangle.geometry.dispose();
+        rectangle.geometry = newGeometry;
+
+        rectangle.position.x = -0.5 + currentWidth / 2;
+
+        if (currentWidth > maxWidth * 0.9) {
+          isZooming = true;
+          isScrollDisabled = true; // スクロールを完全に無効化
+          window.removeEventListener("wheel", onWheel);
+        }
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+
+    function animate() {
+      if (isZooming) {
+        currentZoomProgress = Math.min(
+          1,
+          currentZoomProgress + zoomSpeed * 0.01
+        );
+
+        camera.position.z = THREE.MathUtils.lerp(
+          camera.position.z,
+          targetZ,
+          currentZoomProgress
+        );
+        camera.position.x = THREE.MathUtils.lerp(
+          camera.position.x,
+          rectangle.position.x,
+          currentZoomProgress
+        );
+        camera.position.y = THREE.MathUtils.lerp(
+          camera.position.y,
+          rectangle.position.y,
+          currentZoomProgress
+        );
+
+        if (currentZoomProgress >= 0.3 && !frameImageCreated) {
+          isZooming = false;
+          group.visible = false; // 巻物を非表示
+          zoomFinished = true;
+          scene.background = rectangleMaterial.color; // 背景色を四角形と同じ色に変更
+          console.log(currentZoomProgress);
+          camera.position.set(0, 0, 5);
+          camera.lookAt(0, 0, 0);
+          frameImageCreated = true;
+          isScrollDisabled = false; // スクロール再開
+          window.addEventListener("wheel", onWheel, { passive: false });
+        }
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+    }
+    animate();
+
     window.addEventListener("resize", () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -69,7 +166,20 @@ export default function Home() {
     });
 
     return () => {
+      window.removeEventListener("wheel", onWheel);
       renderer.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.height = "100vh";
+    document.body.style.margin = "0";
+    document.body.style.overflow = "hidden"; // 完全にスクロールを無効化
+
+    return () => {
+      document.body.style.height = "";
+      document.body.style.margin = "";
+      document.body.style.overflow = "";
     };
   }, []);
   return <div></div>;
