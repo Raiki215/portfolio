@@ -1,4 +1,10 @@
 module.exports = {
-  testEnvironment: "jsdom", // 'jsdom'から'node'に変更
-  setupFiles: ["./jest.setup.js"], // 必要なセットアップファイルを指定
+  preset: "ts-jest",
+  testEnvironment: "jsdom",
+  transform: {
+    "^.+\\.tsx?$": "ts-jest",
+  },
+  moduleNameMapper: {
+    "\\.css$": "identity-obj-proxy",
+  },
 };
